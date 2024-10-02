@@ -1,9 +1,9 @@
 const express = require("express");
 const mysql = require("mysql2");
 const nodemailer = require("nodemailer");
-const cors = require('cors');
-const http = require('http');
-const socketIo = require('socket.io');
+const cors = require("cors");
+const http = require("http");
+const WebSocket = require("ws");
 
 const sendOTPController = require("./controllers/send-otp");
 const verifyOTPController = require("./controllers/verify-otp");
@@ -13,12 +13,12 @@ const locationController = require("./controllers/location-access");
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
+
+// WebSocket server
+const wss = new WebSocket.Server({ server });
+
+// Initialize WebSocket in location controller
+locationController.initialize(wss);
 
 const port = process.env.PORT || 3000;
 
@@ -55,9 +55,6 @@ const transporter = nodemailer.createTransport({
 app.locals.db = db;
 app.locals.transporter = transporter;
 
-// Initialize location controller with Socket.IO
-locationController.initialize(io);
-
 // Routes
 app.post("/api/send-otp", sendOTPController.sendOTP);
 app.post("/api/verify-otp", verifyOTPController.verifyOTP);
@@ -69,12 +66,17 @@ app.get("/test", (req, res) => {
 });
 
 // Route to receive location updates
-app.post('/api/location', (req, res) => {
+app.get("/api/frontendcall", (req, res) => {
+  console.log("frontend call");
+  // Call the function to send WebSocket message
+  locationController.sendLocationUpdate();
+  res.json({ message: "hello" });
+});
+app.post("/api/location", (req, res) => {
   const { latitude, longitude } = req.body;
   console.log(`Received location: ${latitude}, ${longitude}`);
-  // Broadcast the location to all connected clients
-  io.emit('locationUpdate', { latitude, longitude });
-  res.json({ message: 'Location received and broadcasted' });
+
+  res.json({ message: "Location received" });
 });
 
 server.listen(port, () => {

@@ -1,21 +1,32 @@
-let io;
+const WebSocket = require("ws");
 
-exports.initialize = (socketIo) => {
-  io = socketIo;
+let wss;
 
-  io.on('connection', (socket) => {
-    console.log('A user connected');
+exports.initialize = (webSocketServer) => {
+  wss = webSocketServer;
 
-    socket.on('disconnect', () => {
-      console.log('User disconnected');
-    });
+  wss.on("connection", (ws) => {
+    console.log("A user connected");
 
-    // Handle location updates
-    socket.on('updateLocation', (data) => {
-      // Broadcast the location to all connected clients
-      io.emit('locationUpdate', data);
+    ws.on("close", () => {
+      console.log("User disconnected");
     });
   });
 };
 
-exports.getLocationIo = () => io;
+exports.sendLocationUpdate = () => {
+  console.log("abc");
+  if (wss) {
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(
+          JSON.stringify({
+            type: "callFunction",
+            functionName: "updateLocation",
+            // data: { latitude, longitude },
+          })
+        );
+      }
+    });
+  }
+};
