@@ -72,11 +72,31 @@ app.get("/api/frontendcall", (req, res) => {
   locationController.sendLocationUpdate();
   res.json({ message: "hello" });
 });
-app.post("/api/location", (req, res) => {
-  const { latitude, longitude } = req.body;
-  console.log(`Received location: ${latitude}, ${longitude}`);
 
-  res.json({ message: "Location received" });
+//call frontend to save location
+app.post("/api/location", (req, res) => {
+  const { latitude, longitude, userid } = req.body;
+
+  if (!latitude || !longitude || !userid) {
+    return res
+      .status(400)
+      .json({ message: "Latitude, longitude, and user ID are required." });
+  }
+
+  const query =
+    "INSERT INTO userslocation (userid, latitude, longitude) VALUES (?, ?, ?)";
+
+  req.app.locals.db.query(
+    query,
+    [userid, latitude, longitude],
+    (err, result) => {
+      if (err) {
+        console.error("Error saving location:", err);
+        return res.status(500).json({ message: "Error saving location" });
+      }
+      res.json({ message: "Location saved successfully" });
+    }
+  );
 });
 
 server.listen(port, () => {
