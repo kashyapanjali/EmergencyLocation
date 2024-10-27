@@ -73,7 +73,6 @@ app.get("/api/frontendcall", (req, res) => {
   res.json({ message: "hello" });
 });
 
-//call frontend to save location
 // call frontend to save or update location
 app.post("/api/location", (req, res) => {
   const { latitude, longitude, userid } = req.body;
