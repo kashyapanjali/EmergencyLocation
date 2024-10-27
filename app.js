@@ -74,6 +74,7 @@ app.get("/api/frontendcall", (req, res) => {
 });
 
 //call frontend to save location
+// call frontend to save or update location
 app.post("/api/location", (req, res) => {
   const { latitude, longitude, userid } = req.body;
 
@@ -83,8 +84,15 @@ app.post("/api/location", (req, res) => {
       .json({ message: "Latitude, longitude, and user ID are required." });
   }
 
-  const query =
-    "INSERT INTO userslocation (userid, latitude, longitude) VALUES (?, ?, ?)";
+  // Use INSERT ... ON DUPLICATE KEY UPDATE to insert or update location
+  const query = `
+    INSERT INTO userslocation (userid, latitude, longitude)
+    VALUES (?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      latitude = VALUES(latitude),
+      longitude = VALUES(longitude),
+      updated_at = CURRENT_TIMESTAMP
+  `;
 
   req.app.locals.db.query(
     query,
@@ -94,7 +102,7 @@ app.post("/api/location", (req, res) => {
         console.error("Error saving location:", err);
         return res.status(500).json({ message: "Error saving location" });
       }
-      res.json({ message: "Location saved successfully" });
+      res.json({ message: "Location saved or updated successfully" });
     }
   );
 });
