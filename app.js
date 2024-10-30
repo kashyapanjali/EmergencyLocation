@@ -61,9 +61,9 @@ app.post("/api/verify-otp", verifyOTPController.verifyOTP);
 app.post("/api/register", signupController.signup);
 app.post("/api/login", loginController.login);
 
-app.get("/test", (req, res) => {
-  res.json({ message: "Test route working" });
-});
+// app.get("/test", (req, res) => {
+//   res.json({ message: "Test route working" });
+// });
 
 // Route to receive location updates
 app.get("/api/frontendcall", (req, res) => {
