@@ -20,7 +20,7 @@ const wss = new WebSocket.Server({ server });
 // Initialize WebSocket in location controller
 locationController.initialize(wss);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -49,6 +49,9 @@ const transporter = nodemailer.createTransport({
     user: "niteshalexa@gmail.com",
     pass: "tojd sanw xrbn oxur",
   },
+  tls: {
+    rejectUnauthorized: false,
+  },
 });
 
 // Store db and transporter in app.locals for use in controllers
@@ -60,10 +63,6 @@ app.post("/api/send-otp", sendOTPController.sendOTP);
 app.post("/api/verify-otp", verifyOTPController.verifyOTP);
 app.post("/api/register", signupController.signup);
 app.post("/api/login", loginController.login);
-
-// app.get("/test", (req, res) => {
-//   res.json({ message: "Test route working" });
-// });
 
 // Route to receive location updates
 app.get("/api/frontendcall", (req, res) => {
