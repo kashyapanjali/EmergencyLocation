@@ -10,6 +10,8 @@ const verifyOTPController = require("./controllers/verify-otp");
 const signupController = require("./controllers/signup");
 const loginController = require("./controllers/login");
 const locationController = require("./controllers/location-access");
+const forgetPasswordController = require("./controllers/forgetpassword");
+const resetPasswordController = require("./controllers/resetpassword");
 
 const app = express();
 const server = http.createServer(app);
@@ -63,14 +65,16 @@ app.post("/api/send-otp", sendOTPController.sendOTP);
 app.post("/api/verify-otp", verifyOTPController.verifyOTP);
 app.post("/api/register", signupController.signup);
 app.post("/api/login", loginController.login);
+app.post("/api/forget-password", forgetPasswordController.forgetPassword);
+app.post("/api/reset-password", resetPasswordController.resetPassword);
 
 // Route to receive location updates
-app.get("/api/frontendcall", (req, res) => {
-  console.log("frontend call");
-  // Call the function to send WebSocket message
-  locationController.sendLocationUpdate();
-  res.json({ message: "hello" });
-});
+// app.get("/api/frontendcall", (req, res) => {
+//   console.log("frontend call");
+// Call the function to send WebSocket message
+//   locationController.sendLocationUpdate();
+//   res.json({ message: "hello" });
+// });
 
 // call frontend to save or update location
 app.post("/api/location", (req, res) => {
