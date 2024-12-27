@@ -1,57 +1,52 @@
 const crypto = require("crypto");
 
-exports.forgetPassword = async (req, res) => {
+exports.forgetPassword = (req, res) => {
   const { email } = req.body;
 
   if (!email) {
     return res.status(400).json({ message: "Email is required" });
   }
 
-  // Check if the email exists in the database
-  const query = "SELECT * FROM users WHERE email = ?";
-  req.app.locals.db.query(query, [email], async (err, results) => {
+  const db = req.app.locals.db;
+  const transporter = req.app.locals.transporter;
+
+  // Generate a secure token
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetTokenExpiresAt = new Date(Date.now() + 3600000); // 1 hour
+
+  // Update the user's reset token in the database
+  const query = `
+    UPDATE users
+    SET reset_token = ?, reset_token_expires_at = ?
+    WHERE email = ?
+  `;
+
+  db.query(query, [resetToken, resetTokenExpiresAt, email], (err, result) => {
     if (err) {
-      return res.status(500).json({ message: "Error checking email" });
+      console.error("Error updating reset token:", err);
+      return res.status(500).json({ message: "Error processing request" });
     }
 
-    if (results.length === 0) {
-      return res.status(404).json({ message: "Email not found" });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const user = results[0];
-    const token = crypto.randomBytes(20).toString("hex"); // Generate a token
-    const expirationTime = Date.now() + 3600000; // 1 hour from now
+    // Send email with reset link
+    const resetLink = `http://localhost:5000/reset-password/${resetToken}`;
+    const mailOptions = {
+      from: "niteshalexa@gmail.com",
+      to: email,
+      subject: "Password Reset Request",
+      text: `You requested a password reset. Click the link to reset your password: ${resetLink}`,
+    };
 
-    // Store the token and expiration in the database
-    const updateQuery =
-      "UPDATE users SET resetPasswordToken = ?, resetPasswordExpires = ? WHERE email = ?";
-    req.app.locals.db.query(
-      updateQuery,
-      [token, expirationTime, email],
-      async (err) => {
-        if (err) {
-          return res.status(500).json({ message: "Error saving token" });
-        }
-
-        // Create the reset link
-        const resetLink = `http://localhost:3000/reset-password?token=${token}&email=${email}`; // Adjust the domain as needed
-
-        // Send email with the reset link
-        const mailOptions = {
-          from: "your-email@gmail.com",
-          to: email,
-          subject: "Password Reset",
-          text: `You requested a password reset. Click the link to reset your password: ${resetLink}`,
-        };
-
-        try {
-          await req.app.locals.transporter.sendMail(mailOptions);
-          res.json({ message: "Password reset link sent successfully" });
-        } catch (error) {
-          console.error("Error sending email:", error);
-          res.status(500).json({ message: "Error sending reset link" });
-        }
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        return res.status(500).json({ message: "Error sending email" });
       }
-    );
+
+      res.status(200).json({ message: "Reset link sent to your email" });
+    });
   });
 };
