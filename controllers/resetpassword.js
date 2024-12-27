@@ -1,55 +1,43 @@
 const bcrypt = require("bcrypt");
 
-exports.resetPassword = async (req, res) => {
-  const { email, password, token } = req.body;
+exports.resetPassword = (req, res) => {
+  const { token } = req.params; // Extract token from URL
+  const { newPassword } = req.body; // Extract new password from request body
 
-  if (!email || !password || !token) {
-    return res
-      .status(400)
-      .json({ message: "Email, new password, and token are required" });
+  if (!newPassword) {
+    return res.status(400).json({ message: "New password is required." });
   }
 
-  // Verify the token and find the user
-  const query =
-    "SELECT * FROM users WHERE email = ? AND resetPasswordToken = ? AND resetPasswordExpires > ?";
-  req.app.locals.db.query(
-    query,
-    [email, token, Date.now()],
-    async (err, results) => {
-      if (err) {
-        return res.status(500).json({ message: "Error finding user" });
-      }
+  const db = req.app.locals.db; // Access database connection
 
-      if (results.length === 0) {
-        return res.status(400).json({ message: "Invalid or expired token" });
-      }
-
-      const user = results[0];
-
-      // Hash the new password
-      try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Update the user's password and clear the reset token
-        const updateQuery =
-          "UPDATE users SET password = ?, resetPasswordToken = NULL, resetPasswordExpires = NULL WHERE id = ?";
-        req.app.locals.db.query(
-          updateQuery,
-          [hashedPassword, user.id],
-          (err) => {
-            if (err) {
-              return res
-                .status(500)
-                .json({ message: "Error updating password" });
-            }
-
-            res.json({ message: "Password has been successfully reset!" });
-          }
-        );
-      } catch (error) {
-        console.error("Error hashing password:", error);
-        res.status(500).json({ message: "Error resetting password" });
-      }
+  // Verify the token
+  const query = `SELECT id FROM users WHERE reset_token = ? AND reset_token_expires_at > NOW()`;
+  db.query(query, [token], (err, results) => {
+    if (err) {
+      console.error("Error verifying token:", err);
+      return res.status(500).json({ message: "Internal server error." });
     }
-  );
+
+    if (results.length === 0) {
+      return res.status(400).json({ message: "Invalid or expired token." });
+    }
+
+    // Hash the new password
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+    // Update the password in the database
+    const updateQuery = `
+      UPDATE users
+      SET password = ?, reset_token = NULL, reset_token_expires_at = NULL
+      WHERE reset_token = ?
+    `;
+    db.query(updateQuery, [hashedPassword, token], (err, result) => {
+      if (err) {
+        console.error("Error updating password:", err);
+        return res.status(500).json({ message: "Error updating password." });
+      }
+
+      res.json({ message: "Password reset successful." });
+    });
+  });
 };
