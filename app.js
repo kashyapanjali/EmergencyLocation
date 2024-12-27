@@ -66,15 +66,7 @@ app.post("/api/verify-otp", verifyOTPController.verifyOTP);
 app.post("/api/register", signupController.signup);
 app.post("/api/login", loginController.login);
 app.post("/api/forget-password", forgetPasswordController.forgetPassword);
-app.post("/api/reset-password", resetPasswordController.resetPassword);
-
-// Route to receive location updates
-// app.get("/api/frontendcall", (req, res) => {
-//   console.log("frontend call");
-// Call the function to send WebSocket message
-//   locationController.sendLocationUpdate();
-//   res.json({ message: "hello" });
-// });
+app.post("/api/reset-password/:token", resetPasswordController.resetPassword);
 
 // call frontend to save or update location
 app.post("/api/location", (req, res) => {
