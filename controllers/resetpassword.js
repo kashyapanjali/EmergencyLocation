@@ -3,9 +3,13 @@ const bcrypt = require("bcrypt");
 exports.resetPassword = (req, res) => {
   const { token } = req.params; // Extract token from URL
   const { newPassword } = req.body; // Extract new password from request body
+  console.log("Reset token:", token);
+  console.log("Password:", newPassword);
 
-  if (!newPassword) {
-    return res.status(400).json({ message: "New password is required." });
+  if (!newPassword || newPassword.length < 6) {
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 6 characters long." });
   }
 
   const db = req.app.locals.db; // Access database connection
@@ -22,22 +26,27 @@ exports.resetPassword = (req, res) => {
       return res.status(400).json({ message: "Invalid or expired token." });
     }
 
-    // Hash the new password
-    const hashedPassword = bcrypt.hashSync(newPassword, 10);
-
-    // Update the password in the database
-    const updateQuery = `
-      UPDATE users
-      SET password = ?, reset_token = NULL, reset_token_expires_at = NULL
-      WHERE reset_token = ?
-    `;
-    db.query(updateQuery, [hashedPassword, token], (err, result) => {
+    // Hash the new password asynchronously
+    bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
       if (err) {
-        console.error("Error updating password:", err);
-        return res.status(500).json({ message: "Error updating password." });
+        console.error("Error hashing password:", err);
+        return res.status(500).json({ message: "Error hashing password." });
       }
 
-      res.json({ message: "Password reset successful." });
+      // Update the password in the database
+      const updateQuery = `
+        UPDATE users
+        SET password = ?, reset_token = NULL, reset_token_expires_at = NULL
+        WHERE reset_token = ?
+      `;
+      db.query(updateQuery, [hashedPassword, token], (err, result) => {
+        if (err) {
+          console.error("Error updating password:", err);
+          return res.status(500).json({ message: "Error updating password." });
+        }
+
+        res.json({ message: "Password reset successful." });
+      });
     });
   });
 };

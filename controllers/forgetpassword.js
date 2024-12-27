@@ -31,8 +31,8 @@ exports.forgetPassword = (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Send email with reset link
-    const resetLink = `http://localhost:5000/reset-password/${resetToken}`;
+    // Corrected reset link pointing to frontend
+    const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
     const mailOptions = {
       from: "niteshalexa@gmail.com",
       to: email,
