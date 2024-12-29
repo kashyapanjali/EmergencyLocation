@@ -25,6 +25,9 @@ exports.login = (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    res.json({ message: "Login successful", userId: user.id });
+    res.json({
+      message: "Login successful",
+      userId: user.id,
+    });
   });
 };

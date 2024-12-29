@@ -1,9 +1,6 @@
 const bcrypt = require("bcrypt");
 
 exports.signup = async (req, res) => {
-  console.log("Register route hit");
-  console.log("Request body:", req.body);
-
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {

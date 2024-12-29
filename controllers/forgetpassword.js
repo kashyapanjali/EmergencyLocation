@@ -42,7 +42,6 @@ exports.forgetPassword = (req, res) => {
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error("Error sending email:", error);
         return res.status(500).json({ message: "Error sending email" });
       }
 
