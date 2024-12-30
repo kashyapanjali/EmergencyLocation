@@ -28,6 +28,7 @@ exports.login = (req, res) => {
     res.json({
       message: "Login successful",
       userId: user.id,
+      username: user.username,
     });
   });
 };
