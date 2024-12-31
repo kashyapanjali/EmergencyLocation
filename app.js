@@ -72,7 +72,7 @@ app.post("/api/forget-password", forgetPasswordController.forgetPassword);
 app.post("/api/reset-password/:token", resetPasswordController.resetPassword);
 // Routes
 app.post("/api/token", locationAccessController.generateToken);
-app.post("api/location", locationController.updateUserLocation);
+app.post("/api/location", locationAccessController.updateUserLocation);
 app.get("/api/location/:token", locationAccessController.getLocationByToken);
 
 server.listen(port, () => {
