@@ -9,18 +9,16 @@ const sendOTPController = require("./controllers/send-otp");
 const verifyOTPController = require("./controllers/verify-otp");
 const signupController = require("./controllers/signup");
 const loginController = require("./controllers/login");
-const locationController = require("./controllers/location-access");
 const forgetPasswordController = require("./controllers/forgetpassword");
 const resetPasswordController = require("./controllers/resetpassword");
 
+const locationAccessController = require("./controllers/location-access");
+
+//new
+const locationController = require("./controllers/location-access");
+
 const app = express();
 const server = http.createServer(app);
-
-// WebSocket server
-const wss = new WebSocket.Server({ server });
-
-// Initialize WebSocket in location controller
-locationController.initialize(wss);
 
 const port = process.env.PORT || 5000;
 
@@ -43,6 +41,12 @@ db.connect((err) => {
   }
   console.log("Connected to the database");
 });
+
+// WebSocket server
+const wss = new WebSocket.Server({ server });
+
+// Initialize WebSocket in location controller
+locationAccessController.initializeWebSocket(wss, db);
 
 // Email transporter
 const transporter = nodemailer.createTransport({
@@ -67,7 +71,10 @@ app.post("/api/register", signupController.signup);
 app.post("/api/login", loginController.login);
 app.post("/api/forget-password", forgetPasswordController.forgetPassword);
 app.post("/api/reset-password/:token", resetPasswordController.resetPassword);
-app.post("/api/location", locationController.handleLocationUpdate);
+// Routes
+app.post("/api/token", locationAccessController.generateToken);
+app.post("api/location", locationController.updateUserLocation);
+app.get("/api/location/:token", locationAccessController.getLocationByToken);
 
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
