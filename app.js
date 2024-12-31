@@ -13,7 +13,6 @@ const forgetPasswordController = require("./controllers/forgetpassword");
 const resetPasswordController = require("./controllers/resetpassword");
 
 const locationAccessController = require("./controllers/location-access");
-
 //new
 const locationController = require("./controllers/location-access");
 
