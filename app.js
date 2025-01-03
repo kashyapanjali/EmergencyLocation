@@ -51,8 +51,8 @@ locationAccessController.initializeWebSocket(wss, db);
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "niteshalexa@gmail.com",
-    pass: "tojd sanw xrbn oxur",
+    user: "anjali.official7061@gmail.com",
+    pass: "neez owhx ujns mpmy",
   },
   tls: {
     rejectUnauthorized: false,

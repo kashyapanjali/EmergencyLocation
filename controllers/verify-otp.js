@@ -67,7 +67,11 @@ exports.verifyOTP = async (req, res) => {
 
     // OTP is verified, return user information
     otpStore.delete(email); // Clean up OTP
-    res.json({ message: "OTP verified successfully", userId: user.id });
+    res.json({
+      message: "OTP verified successfully",
+      userId: user.id,
+      username: user.username,
+    });
   });
 };
 
