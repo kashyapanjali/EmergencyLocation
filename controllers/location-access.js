@@ -153,8 +153,6 @@ exports.getLocationByToken = async (req, res) => {
 // Initialize WebSocket
 exports.initializeWebSocket = (wss, db) => {
   wss.on("connection", (ws) => {
-    console.log("WebSocket client connected");
-
     ws.on("message", async (message) => {
       try {
         const data = JSON.parse(message);
@@ -195,7 +193,6 @@ exports.initializeWebSocket = (wss, db) => {
           break;
         }
       }
-      console.log("WebSocket client disconnected");
     });
   });
 };

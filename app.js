@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const mysql = require("mysql2");
 const nodemailer = require("nodemailer");
@@ -11,10 +13,8 @@ const signupController = require("./controllers/signup");
 const loginController = require("./controllers/login");
 const forgetPasswordController = require("./controllers/forgetpassword");
 const resetPasswordController = require("./controllers/resetpassword");
-
-const locationAccessController = require("./controllers/location-access");
 //new
-const locationController = require("./controllers/location-access");
+const locationAccessController = require("./controllers/location-access");
 
 const app = express();
 const server = http.createServer(app);
@@ -26,11 +26,11 @@ app.use(express.json());
 
 // Database connection
 const db = mysql.createConnection({
-  host: "localhost",
-  port: 3306,
-  user: "root",
-  password: "anjalisql123@#*",
-  database: "locationproject",
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 db.connect((err) => {
@@ -49,10 +49,10 @@ locationAccessController.initializeWebSocket(wss, db);
 
 // Email transporter
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: process.env.EMAIL_SERVICE,
   auth: {
-    user: "anjali.official7061@gmail.com",
-    pass: "neez owhx ujns mpmy",
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
   },
   tls: {
     rejectUnauthorized: false,

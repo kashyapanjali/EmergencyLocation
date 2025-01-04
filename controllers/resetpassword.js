@@ -3,8 +3,6 @@ const bcrypt = require("bcrypt");
 exports.resetPassword = (req, res) => {
   const { token } = req.params; // Extract token from URL
   const { newPassword } = req.body; // Extract new password from request body
-  console.log("Reset token:", token);
-  console.log("Password:", newPassword);
 
   if (!newPassword || newPassword.length < 6) {
     return res

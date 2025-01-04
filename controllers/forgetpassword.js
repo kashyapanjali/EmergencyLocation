@@ -34,7 +34,7 @@ exports.forgetPassword = (req, res) => {
     // Corrected reset link pointing to frontend
     const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
     const mailOptions = {
-      from: "niteshalexa@gmail.com",
+      from: "anjali.official7061@gmail.com",
       to: email,
       subject: "Password Reset Request",
       text: `You requested a password reset. Click the link to reset your password: ${resetLink}`,

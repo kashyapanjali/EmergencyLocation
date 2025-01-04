@@ -6,9 +6,6 @@ function generateOTP() {
 }
 
 exports.sendOTP = async (req, res) => {
-  console.log("Send OTP route hit");
-  console.log("Request body:", req.body);
-
   const { email } = req.body;
 
   if (!email) {
@@ -27,7 +24,7 @@ exports.sendOTP = async (req, res) => {
   }, 5 * 60 * 1000);
 
   const mailOptions = {
-    from: "your-email@gmail.com",
+    from: "anjali.official7061@gmail.com",
     to: email,
     subject: "Your OTP for registration",
     text: `Your OTP is: ${otp}. This OTP will expire in 5 minutes.`,
