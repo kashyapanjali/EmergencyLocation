@@ -36,10 +36,10 @@ const pool = new Pool({
 (async () => {
 	try {
 		const client = await pool.connect();
-		console.log("✅ Connected to PostgreSQL database");
+		console.log("Connected to PostgreSQL database");
 		client.release();
 	} catch (err) {
-		console.error("❌ PostgreSQL connection error:", err);
+		console.error("PostgreSQL connection error:", err);
 	}
 })();
 
@@ -50,7 +50,7 @@ if (typeof locationAccessController.initializeWebSocket === "function") {
 	locationAccessController.initializeWebSocket(wss, pool);
 } else {
 	console.warn(
-		"⚠️ WebSocket initialization function is missing in locationAccessController"
+		"WebSocket initialization function is missing in locationAccessController"
 	);
 }
 
@@ -83,5 +83,5 @@ app.post("/api/location", locationAccessController.updateUserLocation);
 app.get("/api/location/:token", locationAccessController.getLocationByToken);
 
 server.listen(port, () => {
-	console.log(`🚀 Server running on port ${port}`);
+	console.log(`Server running on port ${port}`);
 });
