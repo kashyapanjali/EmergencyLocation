@@ -17,8 +17,8 @@ exports.forgetPassword = (req, res) => {
   // Update the user's reset token in the database
   const query = `
     UPDATE users
-    SET reset_token = ?, reset_token_expires_at = ?
-    WHERE email = ?
+    SET reset_token = $1, reset_token_expires_at = $2
+    WHERE email = $3
   `;
 
   db.query(query, [resetToken, resetTokenExpiresAt, email], (err, result) => {
@@ -27,7 +27,7 @@ exports.forgetPassword = (req, res) => {
       return res.status(500).json({ message: "Error processing request" });
     }
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: "User not found" });
     }
 

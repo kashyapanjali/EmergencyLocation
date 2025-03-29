@@ -13,14 +13,14 @@ exports.resetPassword = (req, res) => {
   const db = req.app.locals.db; // Access database connection
 
   // Verify the token
-  const query = `SELECT id FROM users WHERE reset_token = ? AND reset_token_expires_at > NOW()`;
+  const query = `SELECT id FROM users WHERE reset_token = $1 AND reset_token_expires_at > NOW()`;
   db.query(query, [token], (err, results) => {
     if (err) {
       console.error("Error verifying token:", err);
       return res.status(500).json({ message: "Internal server error." });
     }
 
-    if (results.length === 0) {
+    if (results.rows.length === 0) {
       return res.status(400).json({ message: "Invalid or expired token." });
     }
 
@@ -34,13 +34,17 @@ exports.resetPassword = (req, res) => {
       // Update the password in the database
       const updateQuery = `
         UPDATE users
-        SET password = ?, reset_token = NULL, reset_token_expires_at = NULL
-        WHERE reset_token = ?
+        SET password = $1, reset_token = NULL, reset_token_expires_at = NULL
+        WHERE reset_token = $2
       `;
       db.query(updateQuery, [hashedPassword, token], (err, result) => {
         if (err) {
           console.error("Error updating password:", err);
           return res.status(500).json({ message: "Error updating password." });
+        }
+
+        if (result.rowCount === 0) {
+          return res.status(400).json({ message: "Invalid or expired token." });
         }
 
         res.json({ message: "Password reset successful." });
