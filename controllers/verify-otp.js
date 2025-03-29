@@ -1,79 +1,68 @@
+const { Pool } = require("pg");
+const bcrypt = require("bcrypt");
+
 const otpStore = new Map();
-const bcrypt = require("bcrypt"); // Import bcrypt
+const pool = new Pool({
+	host: process.env.DB_HOST,
+	port: process.env.DB_PORT,
+	user: process.env.DB_USER,
+	password: process.env.DB_PASSWORD,
+	database: process.env.DB_NAME,
+	ssl: { rejectUnauthorized: false }, // Required for Render or other cloud services
+});
 
 exports.verifyOTP = async (req, res) => {
-  const { email, otp } = req.body;
+	const { email, otp } = req.body;
 
-  if (!email || !otp) {
-    return res.status(400).json({ message: "Email and OTP are required" });
-  }
+	if (!email || !otp) {
+		return res.status(400).json({ message: "Email and OTP are required" });
+	}
 
-  const storedData = otpStore.get(email);
-  if (!storedData) {
-    return res.status(400).json({ message: "OTP not found or expired" });
-  }
+	const storedData = otpStore.get(email);
+	if (!storedData) {
+		return res.status(400).json({ message: "OTP not found or expired" });
+	}
 
-  const { otp: storedOTP, expirationTime } = storedData;
+	const { otp: storedOTP, expirationTime } = storedData;
 
-  if (Date.now() > expirationTime) {
-    otpStore.delete(email);
-    return res.status(400).json({ message: "OTP has expired" });
-  }
+	if (Date.now() > expirationTime) {
+		otpStore.delete(email);
+		return res.status(400).json({ message: "OTP has expired" });
+	}
 
-  if (storedOTP !== otp) {
-    return res.status(400).json({ message: "Invalid OTP" });
-  }
+	if (storedOTP !== otp) {
+		return res.status(400).json({ message: "Invalid OTP" });
+	}
 
-  // OTP is valid, now check if the user exists in the database
-  const queryFindUser = "SELECT * FROM users WHERE email = ?";
-  req.app.locals.db.query(queryFindUser, [email], async (err, results) => {
-    if (err) {
-      console.error("Error finding user:", err);
-      return res.status(500).json({ message: "Error checking user existence" });
-    }
+	try {
+		const userQuery = "SELECT * FROM users WHERE email = $1";
+		const userResult = await pool.query(userQuery, [email]);
+		let user = userResult.rows[0];
 
-    let user = results[0];
+		if (!user) {
+			const randomPassword = Math.random().toString(36).slice(-8);
+			const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-    if (!user) {
-      // If user does not exist, create a new user
-      try {
-        const randomPassword = Math.random().toString(36).slice(-8); // Generate a random password
-        const hashedPassword = await bcrypt.hash(randomPassword, 10); // Hash the password
+			const insertUserQuery =
+				"INSERT INTO users (email, password, username) VALUES ($1, $2, NULL) RETURNING id, email";
+			const insertResult = await pool.query(insertUserQuery, [
+				email,
+				hashedPassword,
+			]);
 
-        const queryCreateUser =
-          "INSERT INTO users (email, password, username) VALUES (?, ?, NULL)";
+			user = insertResult.rows[0];
+		}
 
-        // Use a promise to handle the query
-        const result = await new Promise((resolve, reject) => {
-          req.app.locals.db.query(
-            queryCreateUser,
-            [email, hashedPassword],
-            (err, result) => {
-              if (err) {
-                console.error("Error saving user:", err);
-                return reject(err); // Reject the promise on error
-              }
-              resolve(result); // Resolve the promise with the result
-            }
-          );
-        });
-
-        user = { id: result.insertId, email }; // Create a user object to return
-      } catch (error) {
-        console.error("Error hashing password:", error);
-        return res.status(500).json({ message: "Error saving user" });
-      }
-    }
-
-    // OTP is verified, return user information
-    otpStore.delete(email); // Clean up OTP
-    res.json({
-      message: "OTP verified successfully",
-      userId: user.id,
-      username: user.username,
-    });
-  });
+		otpStore.delete(email);
+		res.json({
+			message: "OTP verified successfully",
+			userId: user.id,
+			username: user.username,
+		});
+	} catch (error) {
+		console.error("Database error:", error);
+		res.status(500).json({ message: "Internal server error" });
+	}
 };
 
-// Export otpStore to be used in other controllers
 exports.otpStore = otpStore;
