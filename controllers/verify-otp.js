@@ -57,7 +57,6 @@ exports.verifyOTP = async (req, res) => {
       email: user.email
     });
   } catch (error) {
-    console.error("Error in verifyOTP:", error);
     return res.status(500).json({ message: "Error processing request" });
   }
 };

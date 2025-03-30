@@ -40,12 +40,11 @@ exports.sendOTP = async (req, res) => {
 
          // Check if transporter exists
          if (!req.app.locals.transporter) {
-             console.error("Email transporter is not configured");
-             return res.status(500).json({ 
-                 message: "Email service not configured", 
-                 error: "Email transporter is missing" 
-             });
-         }
+			return res.status(500).json({ 
+				message: "Email service not configured", 
+				error: "Email transporter is missing" 
+			});
+		}
 
          // Send email using the transporter
          const mailOptions = {
@@ -65,9 +64,7 @@ exports.sendOTP = async (req, res) => {
                  error: emailError.message 
              });
          }
-     } catch (error) {
-         console.error("Error in sendOTP:", error);
-         console.error("Error stack:", error.stack);
+     } catch (error) { 
          res.status(500).json({ 
              message: "Error sending OTP", 
              error: error.message,
