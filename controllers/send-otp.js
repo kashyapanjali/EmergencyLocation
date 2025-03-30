@@ -49,7 +49,7 @@ exports.sendOTP = async (req, res) => {
 
          // Send email using the transporter
          const mailOptions = {
-             from: "anjali.official7061@gmail.com",
+             from: process.env.EMAIL_USER,
              to: email,
              subject: "Your OTP for registration",
              text: `Your OTP is: ${otp}. This OTP will expire in 5 minutes.`,
