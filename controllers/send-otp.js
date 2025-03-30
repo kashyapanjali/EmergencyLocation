@@ -1,44 +1,77 @@
 const crypto = require("crypto");
+const { otpStore } = require("./verify-otp");
+
 
 function generateOTP() {
-	return crypto.randomInt(100000, 999999).toString();
+   return crypto.randomInt(100000, 999999).toString();
 }
 
 exports.sendOTP = async (req, res) => {
-	const { email } = req.body;
-	if (!email) {
-		return res.status(400).json({ message: "Email is required" });
-	}
+     try {
+         const { email } = req.body;
+         
+         // Email validation
+         if (!email) {
+             return res.status(400).json({ message: "Email is required" });
+         }
+         
+         // Basic email format validation
+         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+         if (!emailRegex.test(email)) {
+             return res.status(400).json({ message: "Invalid email format" });
+         }
 
-	const otp = generateOTP();
-	const expirationTime = new Date(Date.now() + 5 * 60 * 1000); // Expiry: 5 minutes
+         const otp = generateOTP();
+         const expirationTime = Date.now() + 5 * 60 * 1000; // 5 minutes
+         
+         // Store OTP with expiration in the Map
+         otpStore.set(email, { 
+             otp, 
+             expirationTime,
+             attempts: 0
+         });
 
-	try {
-		const db = req.app.locals.db;
-		const transporter = req.app.locals.transporter;
+         // Set timeout to delete OTP after 5 minutes
+         setTimeout(() => {
+             if (otpStore.has(email) && otpStore.get(email).otp === otp) {
+                 otpStore.delete(email);
+             }
+         }, 5 * 60 * 1000);
 
-		// Store OTP in PostgreSQL (UPSERT if email exists)
-		const query = `
-      INSERT INTO otps (email, otp, expires_at)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (email) DO UPDATE 
-      SET otp = EXCLUDED.otp, expires_at = EXCLUDED.expires_at
-    `;
-		await db.query(query, [email, otp, expirationTime]);
+         // Check if transporter exists
+         if (!req.app.locals.transporter) {
+             console.error("Email transporter is not configured");
+             return res.status(500).json({ 
+                 message: "Email service not configured", 
+                 error: "Email transporter is missing" 
+             });
+         }
 
-		const mailOptions = {
-			from: "anjali.official7061@gmail.com",
-			to: email,
-			subject: "Your OTP for registration",
-			text: `Your OTP is: ${otp}. This OTP will expire in 5 minutes.`,
-		};
+         // Send email using the transporter
+         const mailOptions = {
+             from: "anjali.official7061@gmail.com",
+             to: email,
+             subject: "Your OTP for registration",
+             text: `Your OTP is: ${otp}. This OTP will expire in 5 minutes.`,
+         };
 
-		await transporter.sendMail(mailOptions);
-		res.json({ message: "OTP sent successfully" });
-	} catch (error) {
-		console.error("Error sending OTP:", error);
-		res
-			.status(500)
-			.json({ message: "Error sending OTP", error: error.message });
-	}
+         try {
+             await req.app.locals.transporter.sendMail(mailOptions);
+             res.json({ message: "OTP sent successfully" });
+         } catch (emailError) {
+             console.error("Email sending error:", emailError);
+             return res.status(500).json({ 
+                 message: "Failed to send email", 
+                 error: emailError.message 
+             });
+         }
+     } catch (error) {
+         console.error("Error in sendOTP:", error);
+         console.error("Error stack:", error.stack);
+         res.status(500).json({ 
+             message: "Error sending OTP", 
+             error: error.message,
+             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+         });
+     }
 };
