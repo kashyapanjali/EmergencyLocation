@@ -17,9 +17,11 @@ const locationAccessController = require("./controllers/location-access"); // ne
 
 const app = express();
 const server = http.createServer(app);
+
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors());  
+app.options('*', cors()); // enable preflight for all routes
 app.use(express.json());
 
 // PostgreSQL Database Connection
@@ -77,7 +79,6 @@ app.post("/api/register", signupController.signup);
 app.post("/api/login", loginController.login);
 app.post("/api/forget-password", forgetPasswordController.forgetPassword);
 app.post("/api/reset-password/:token", resetPasswordController.resetPassword);
-
 app.post("/api/token", locationAccessController.generateToken);
 app.post("/api/location", locationAccessController.updateUserLocation);
 app.get("/api/location/:token", locationAccessController.getLocationByToken);
