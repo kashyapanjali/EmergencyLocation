@@ -22,9 +22,10 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+
     res.json({
       message: "Login successful",
-      userId: user.id,
+      userId: user.userid,  // Add this line to include the userid from the database
       username: user.username,
     });
   } catch (err) {
