@@ -4,3 +4,4 @@
 node_modules
 .env
 /deploy.sh
+/location-backend.pem

@@ -25,7 +25,7 @@ exports.login = async (req, res) => {
 
     res.json({
       message: "Login successful",
-      userId: user.userid,  // Add this line to include the userid from the database
+      userId: user.id,  // Changed from user.userid to user.id
       username: user.username,
     });
   } catch (err) {
