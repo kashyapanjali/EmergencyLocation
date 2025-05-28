@@ -29,7 +29,7 @@ const pool = new Pool({
 	user: process.env.DB_USER,
 	password: process.env.DB_PASSWORD,
 	database: process.env.DB_NAME,
-	// ssl: false // disable SSL completely
+	// ssl: false, // disable SSL completely
 	ssl: { rejectUnauthorized: false }, // Required for Render or other cloud services
 });
 
