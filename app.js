@@ -19,7 +19,11 @@ const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+	origin: ['https://brainbrief.in/', 'http://localhost:3000'],
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+	credentials: true
+}));
 app.use(express.json());
 
 // PostgreSQL Database Connection
@@ -30,7 +34,7 @@ const pool = new Pool({
 	password: process.env.DB_PASSWORD,
 	database: process.env.DB_NAME,
 	// ssl: false, // disable SSL completely
-	ssl: { rejectUnauthorized: false }, // Required for Render or other cloud services
+	ssl: { rejectUnauthorized: false }, // Required for other cloud services
 });
 
 // Test database connection
