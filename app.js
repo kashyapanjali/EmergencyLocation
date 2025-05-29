@@ -20,7 +20,7 @@ const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-	origin: ['https://brainbrief.in/', 'http://localhost:3000'],
+	origin: ['https://brainbrief.in', 'http://localhost:3000'],
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 	credentials: true
 }));
