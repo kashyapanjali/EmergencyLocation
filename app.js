@@ -26,6 +26,23 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Add error handling middleware for JSON parsing errors
+app.use((err, req, res, next) => {
+	if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+		console.error('JSON Parse Error:', {
+			path: req.path,
+			method: req.method,
+			headers: req.headers,
+			body: req.body
+		});
+		return res.status(400).json({ 
+			message: 'Invalid JSON in request body',
+			error: err.message 
+		});
+	}
+	next();
+});
+
 // PostgreSQL Database Connection
 const pool = new Pool({
 	host: process.env.DB_HOST,
