@@ -18,6 +18,8 @@ const locationAccessController = require("./controllers/location-access"); // ne
 const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT || 5000;
+app.options('*', cors());
+
 
 app.use(cors({
 	origin: ['https://brainbrief.in/', 'http://localhost:3000'],
