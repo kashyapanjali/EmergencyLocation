@@ -20,28 +20,11 @@ const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-	origin: ['https://brainbrief.in', 'http://localhost:3000'],
+	origin: ['https://brainbrief.in/', 'http://localhost:3000'],
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 	credentials: true
 }));
 app.use(express.json());
-
-// Add error handling middleware for JSON parsing errors
-app.use((err, req, res, next) => {
-	if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-		console.error('JSON Parse Error:', {
-			path: req.path,
-			method: req.method,
-			headers: req.headers,
-			body: req.body
-		});
-		return res.status(400).json({ 
-			message: 'Invalid JSON in request body',
-			error: err.message 
-		});
-	}
-	next();
-});
 
 // PostgreSQL Database Connection
 const pool = new Pool({
@@ -50,8 +33,8 @@ const pool = new Pool({
 	user: process.env.DB_USER,
 	password: process.env.DB_PASSWORD,
 	database: process.env.DB_NAME,
-	// ssl: false, // disable SSL completely
-	ssl: { rejectUnauthorized: false }, // Required for other cloud services
+	ssl: false, // disable SSL completely
+	// ssl: { rejectUnauthorized: false }, 
 });
 
 // Test database connection
